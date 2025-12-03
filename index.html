@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don Lauro 2026 | Cuenta Regresiva de Año Nuevo</title>
+    <!-- Incluye Tailwind CSS para un diseño moderno y minimalista -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de la fuente Inter (Mantenemos la fuente original por legibilidad) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Define la paleta de colores personalizada de Tailwind y la paleta de acentos de la publicidad */
+        :root {
+            --color-elegant-black: #111111; /* Ligeramente más suave que el 000000 para el fondo */
+            --color-festive-gold: #C8A845;
+            --color-pure-white: #FFFFFF;
+            --color-cherry-red: #A50021; /* Usado para acentos o el fondo de celebración */
+            /* Colores de la paleta moderna de la publicidad (inspirados en la imagen) */
+            --color-ad-blue: #007bff;
+            --color-ad-pink: #ff69b4;
+            --color-ad-green: #3cb371;
+            --color-ad-yellow: #ffc107;
+        }
+
+        /* Estilos base */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-elegant-black); /* Negro Elegante Ligeramente Suave */
+            color: var(--color-pure-white); /* Texto Blanco Puro */
+            transition: background-color 0.5s ease;
+            position: relative; /* Necesario para que el canvas se posicione correctamente */
+        }
+
+        /* Estilo para el Canvas de Fondo */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Mantiene el canvas en el fondo */
+            background-color: var(--color-elegant-black);
+        }
+
+        /* Asegura que el contenido esté sobre el canvas */
+        .content-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Clase para el contador */
+        .countdown-segment {
+            transition: all 0.3s ease-in-out;
+            border-radius: 0.75rem; /* Bordes redondeados */
+            /* Un poco de sombra sutil para el efecto de profundidad */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.05); /* Usar rgba para que sea semitransparente sobre el canvas */
+            backdrop-filter: blur(2px); /* Un pequeño desenfoque para que resalte más */
+        }
+
+        /* Estilo para el gran mensaje final */
+        #final-message {
+            font-size: 5.5rem; /* Tamaño un poco más grande para el año */
+            line-height: 1;
+            font-weight: 900;
+            color: var(--color-festive-gold); /* Dorado Festivo */
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 15px rgba(200, 168, 69, 0.8); /* Sombra más fuerte para el brillo */
+        }
+
+        /* Estilos del Confeti (para un efecto simple y elegante) */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 15px;
+            /* Los colores del confeti ahora incluyen la paleta de la publicidad */
+            background-color: var(--color-festive-gold); 
+            opacity: 0;
+            animation: confetti-fall 5s linear infinite;
+        }
+
+        /* Definimos la animación de caída del confeti */
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center items-center p-4">
+
+    <!-- CANVAS PARA EL FONDO GEOMÉTRICO -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Contenedor del Contenido Principal (para mantenerlo sobre el canvas) -->
+    <div class="content-container min-h-screen flex flex-col justify-center items-center w-full">
+
+        <!-- Bloque Superior de Logo y Año -->
+        <div class="flex flex-col items-center mb-10 mt-4">
+            <!-- Logo Don Lauro (Blanco con acento dorado) -->
+            <div class="flex flex-col items-center">
+                <h1 class="text-3xl font-bold text-white tracking-widest text-center">
+                    <span class="text-[#C8A845]">D</span>ON <span class="text-[#C8A845]">L</span>AURO
+                </h1>
+                <p class="text-sm font-light tracking-widest text-white/70 mt-1 uppercase">
+                    TAPAS & VINO
+                </p>
+            </div>
+            
+            <!-- Elemento 2026 simple - AUMENTADO EN TAMAÑO Y PESO -->
+            <div class="text-6xl font-black text-[#C8A845] mt-6" style="text-shadow: 0 0 10px rgba(200, 168, 69, 0.5);">
+                2026
+            </div>
+        </div>
+        
+        <!-- Contenedor Principal con la Cuenta Regresiva -->
+        <div class="relative w-full max-w-4xl flex flex-col items-center justify-center p-6">
+
+            <!-- Columna Central - Cuenta Regresiva -->
+            <div class="w-full flex flex-col items-center justify-center p-4">
+                
+                <!-- Título de la Cuenta Regresiva -->
+                <h2 id="countdown-title" class="text-xl md:text-2xl font-bold mb-10 uppercase tracking-widest text-white/90 text-center">
+                    <span class="text-[#C8A845]">LLEGÓ LA HORA</span> | CUENTA REGRESIVA
+                </h2>
+
+                <!-- Contenedor Principal del Contador -->
+                <div id="countdown-container" class="flex justify-center items-center space-x-3 md:space-x-8">
+                    <!-- Segmento Días -->
+                    <div class="countdown-segment flex flex-col items-center p-4 md:p-8">
+                        <span id="days" class="text-5xl md:text-8xl font-black text-[#C8A845] leading-none">00</span>
+                        <span class="text-xs md:text-sm font-medium uppercase tracking-wider mt-2 text-white/60">Días</span>
+                    </div>
+
+                    <!-- Segmento Horas -->
+                    <div class="countdown-segment flex flex-col items-center p-4 md:p-8">
+                        <span id="hours" class="text-5xl md:text-8xl font-black text-[#C8A845] leading-none">00</span>
+                        <span class="text-xs md:text-sm font-medium uppercase tracking-wider mt-2 text-white/60">Horas</span>
+                    </div>
+
+                    <!-- Segmento Minutos -->
+                    <div class="countdown-segment flex flex-col items-center p-4 md:p-8">
+                        <span id="minutes" class="text-5xl md:text-8xl font-black text-[#C8A845] leading-none">00</span>
+                        <span class="text-xs md:text-sm font-medium uppercase tracking-wider mt-2 text-white/60">Minutos</span>
+                    </div>
+
+                    <!-- Segmento Segundos -->
+                    <div class="countdown-segment flex flex-col items-center p-4 md:p-8">
+                        <span id="seconds" class="text-5xl md:text-8xl font-black text-[#C8A845] leading-none">00</span>
+                        <span class="text-xs md:text-sm font-medium uppercase tracking-wider mt-2 text-white/60">Segundos</span>
+                    </div>
+                </div>
+
+                <!-- Mensaje Final (Inicialmente oculto) -->
+                <div id="final-message-container" class="hidden text-center mt-16">
+                    <div id="final-message" class="p-4 animate-pulse">
+                        <!-- El texto con el año se llenará con JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div> <!-- Fin de .content-container -->
+
+    <!-- Contenedor del Confeti (Inicialmente oculto) -->
+    <div id="confetti-effect" class="confetti-container hidden">
+        <!-- El JS llenará esto con partículas de confeti -->
+    </div>
+
+
+    <script>
+        // --- Configuración de la Cuenta Regresiva ---
+
+        // Define la fecha objetivo (Año Nuevo 2026 - 1 de Enero de 2026, 00:00:00)
+        const targetYear = 2026;
+        const targetDate = new Date(`January 1, ${targetYear} 00:00:00`).getTime();
+
+        // Referencias a los elementos del DOM
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const countdownContainer = document.getElementById('countdown-container');
+        const finalMessageContainer = document.getElementById('final-message-container');
+        const countdownTitle = document.getElementById('countdown-title');
+        const confettiEffect = document.getElementById('confetti-effect');
+        const finalMessageEl = document.getElementById('final-message');
+        const bodyEl = document.body;
+        
+        // Elementos del Canvas de Fondo
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        var W, H; // Ancho y alto del canvas (se define en setCanvasSize)
+        let countdownInterval; 
+        
+        const shapeColors = [ // Renombrado de lineColors a shapeColors
+            '#007bff', // --color-ad-blue
+            '#ff69b4', // --color-ad-pink
+            '#3cb371', // --color-ad-green
+            '#ffc107', // --color-ad-yellow
+        ];
+        
+        // Colecciones de figuras
+        const shapes = []; 
+        const maxShapes = 20; // Reducido a 20 figuras (círculos y triángulos)
+        // Colores del confeti expandidos
+        const confettiColors = [
+            '#C8A845', // Dorado Festivo
+            '#FFFFFF', // Blanco Puro
+            '#A50021', // Rojo Cereza
+            '#007bff', // Azul de la publicidad
+            '#ff69b4', // Rosa de la publicidad
+            '#3cb371', // Verde de la publicidad
+            '#ffc107', // Amarillo de la publicidad
+        ];
+
+        // Función para establecer el tamaño del canvas y manejar el redimensionamiento
+        function setCanvasSize() {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+        }
+
+        // Clase base para figuras estáticas
+        class GeometricShape {
+            constructor() {
+                this.x = Math.random() * W;
+                this.y = Math.random() * H;
+                this.color = shapeColors[Math.floor(Math.random() * shapeColors.length)];
+                // Opacidad muy baja para un efecto sutil y elegante
+                this.alpha = 0.05 + Math.random() * 0.15; 
+                this.size = 100 + Math.random() * 250; // Tamaño grande
+                this.rotation = Math.random() * Math.PI * 2; // Rotación aleatoria para triángulos
+            }
+
+            draw() {
+                // Implementación en clases hijas
+            }
+        }
+
+        // Clase para dibujar círculos estáticos
+        class Circle extends GeometricShape {
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+            }
+        }
+
+        // Clase para dibujar triángulos estáticos
+        class Triangle extends GeometricShape {
+            draw() {
+                const s = this.size; // Lado
+                ctx.beginPath();
+                
+                // Aplicar rotación y traslación
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                // Dibujar el triángulo centrado
+                ctx.moveTo(0, -s / 2); // Vértice superior
+                ctx.lineTo(s / 2, s / 2); // Vértice inferior derecho
+                ctx.lineTo(-s / 2, s / 2); // Vértice inferior izquierdo
+                ctx.closePath();
+                
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+                
+                ctx.restore(); // Restaurar el estado del canvas
+            }
+        }
+        
+        // La clase AnimatedLine ha sido eliminada.
+
+        // Función para dibujar solo las figuras estáticas (círculos y triángulos)
+        function drawBackgroundShapes() { 
+            // Borra el canvas completamente con el color de fondo elegante-black
+            ctx.fillStyle = 'var(--color-elegant-black)'; 
+            ctx.fillRect(0, 0, W, H);
+            
+            // Dibujar todas las figuras geométricas
+            shapes.forEach(element => {
+                element.draw();
+            });
+        }
+
+        // Inicializa solo las figuras geométricas
+        function initShapes() {
+            setCanvasSize();
+            shapes.length = 0; // Limpia las figuras existentes
+            
+            // Inicializa las figuras (50% círculos, 50% triángulos)
+            for (let i = 0; i < maxShapes; i++) {
+                if (Math.random() < 0.5) {
+                    shapes.push(new Circle());
+                } else {
+                    shapes.push(new Triangle());
+                }
+            }
+            
+            drawBackgroundShapes(); // Dibuja las figuras inmediatamente después de inicializarlas (o redimensionar)
+        }
+
+        // Función para añadir ceros iniciales si el número es menor a 10
+        function formatTime(time) {
+            return time < 10 ? `0${time}` : time;
+        }
+
+        // Función principal que actualiza la cuenta regresiva
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            // Lógica si la cuenta regresiva ha terminado
+            if (distance < 0) {
+                // Ahora accede a la variable declarada globalmente
+                clearInterval(countdownInterval); 
+                showFinalMessage();
+                return;
+            }
+
+            // Cálculo de tiempo para días, horas, minutos y segundos
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Actualiza el DOM con los valores
+            daysEl.textContent = formatTime(days);
+            hoursEl.textContent = formatTime(hours);
+            minutesEl.textContent = formatTime(minutes);
+            secondsEl.textContent = formatTime(seconds);
+
+            // Efecto de parpadeo en los últimos 10 segundos
+            if (distance <= 10000 && distance > 0) {
+                // Parpadeo sutil entre Negro Elegante y Rojo Cereza
+                bodyEl.style.backgroundColor = (seconds % 2 === 0) ? 'var(--color-elegant-black)' : 'var(--color-cherry-red)';
+                const segment = secondsEl.closest('.countdown-segment');
+                segment.style.transform = seconds % 2 === 0 ? 'scale(1.1)' : 'scale(1.0)';
+            } else if (distance > 10000) {
+                bodyEl.style.backgroundColor = 'var(--color-elegant-black)';
+                secondsEl.closest('.countdown-segment').style.transform = 'scale(1.0)';
+            }
+        }
+
+        // Función para mostrar el mensaje final y el confeti
+        function showFinalMessage() {
+            countdownContainer.classList.add('hidden');
+            countdownTitle.classList.add('hidden');
+            finalMessageContainer.classList.remove('hidden');
+            confettiEffect.classList.remove('hidden');
+            
+            // Establece el fondo de celebración final directamente en el body
+            bodyEl.style.backgroundColor = 'var(--color-cherry-red)';
+            
+            // Ocultamos el canvas para que el color del body sea visible
+            canvas.style.display = 'none';
+
+            finalMessageEl.textContent = `¡FELIZ AÑO NUEVO ${targetYear}!`;
+
+            createConfettiParticles();
+        }
+
+        // Función para generar las partículas de confeti
+        function createConfettiParticles() {
+            const numParticles = 150; // Aumentamos la cantidad para más impacto
+
+            for (let i = 0; i < numParticles; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                // Asigna colores de la paleta expandida
+                confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+
+                // Posición horizontal inicial aleatoria
+                confetti.style.left = `${Math.random() * 100}vw`;
+
+                // Retraso de animación aleatorio
+                confetti.style.animationDelay = `${Math.random() * 5}s`;
+                
+                // Duración de la animación ligeramente aleatoria
+                confetti.style.animationDuration = `${5 + Math.random() * 3}s`;
+
+                // Tamaño aleatorio para variar
+                const size = 10 + Math.random() * 10;
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size * 1.5}px`;
+
+                confettiEffect.appendChild(confetti);
+            }
+        }
+        
+        // --- Event Listeners y Inicialización ---
+        // Al redimensionar, se reinician y dibujan las figuras
+        window.addEventListener('resize', initShapes); // Cambiado a initShapes
+
+        window.onload = function () {
+            // Inicialización de las figuras geométricas (estáticas)
+            initShapes(); // Cambiado a initShapes
+
+            // Inicia la cuenta regresiva inmediatamente
+            updateCountdown();
+
+            // Configura el intervalo para actualizar cada segundo
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+    </script>
+</body>
+</html>
